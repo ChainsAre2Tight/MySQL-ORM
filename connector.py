@@ -9,6 +9,10 @@ class TemplateConnection(ABC):
         self._user = user
         self._password = password
         self._connected_to_db = False
+        self._connection = None
+
+    @abstractmethod
+    def connect(self):
         self._connection = pymysql.connect(
             host=self._host,
             user=self._user,
@@ -55,6 +59,8 @@ class DBConnection(TemplateConnection):
         super().__init__(host, user, password)
         self._connected_to_db = True
         self._dbname = dbname
+
+    def connect(self):
         self._connection = pymysql.connect(
             host=self._host,
             user=self._user,

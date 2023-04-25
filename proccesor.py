@@ -28,10 +28,20 @@ class GetDataProcessor(AbstractProcessor):
 
     def get_data(self) -> tuple:
         # generate SQL query
-        sql = f"SELECT * FROM {self.connection.dbname} WHERE {self.filter_to_string}"
+        if self.filter is not None:
+            sql = f"SELECT * FROM {self.connection.dbname} WHERE {self.filter_to_string}"
+        else:
+            sql = f"SELECT * FROM {self.connection.dbname}"
 
-        self.connection.cursor.execute(sql)
-        data = self.connection.cursor.fetchall()
+        # connect to database
+        self.connection.connect()
+        cursor = self.connection.cursor
+
+        # execute sql query
+        cursor.execute(sql)
+        data = cursor.fetchall()
+
+        # close connection
         self.connection.close()
 
         list_of_objects = list()
