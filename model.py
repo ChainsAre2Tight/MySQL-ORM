@@ -1,8 +1,9 @@
 import database_fields
-from proccesor import GetDataProcessor, GetTableInfoProcessor
+from processor import GetDataProcessor, GetTableInfoProcessor
 from connector import DBConnection
 from config import Config
 from abstract_model import AbstractModel
+from dataobject import DataObject
 
 
 class Model(AbstractModel):
@@ -72,6 +73,13 @@ class Model(AbstractModel):
                 return True
             return False
 
+    class _Inserter:
+        _fields: dict
+
+        def __init__(self, m: AbstractModel):
+            self._model = m
+            self._fields = self._model.fields
+
     objects: _Objects
     _checker: _Checker
 
@@ -82,6 +90,10 @@ class Model(AbstractModel):
     @property
     def is_relevant(self):
         return self._checker.check_if_table_is_relevant()
+
+    def add_data(self, data: list[DataObject]):
+        raise NotImplementedError
+
 
 
 class MyModel(Model):
