@@ -1,11 +1,10 @@
 from connector import DBConnection
-from model import Model
 from abc import ABC
 
 
 class AbstractProcessor(ABC):
     connection: DBConnection
-    model: Model
+    model: object
 
     def __init__(self, m, con: DBConnection):
         self.model = m
@@ -30,9 +29,9 @@ class GetDataProcessor(AbstractProcessor):
     def get_data(self):
         # generate SQL query
         if self.filter is not None:
-            sql = f"SELECT * FROM {self.connection.dbname} WHERE {self.filter_to_string}"
+            sql = f"SELECT * FROM {self.model.table_name} WHERE {self.filter_to_string}"
         else:
-            sql = f"SELECT * FROM {self.connection.dbname}"
+            sql = f"SELECT * FROM {self.model.table_name}"
 
         # connect to database
         self.connection.connect()
@@ -58,7 +57,7 @@ class GetDataProcessor(AbstractProcessor):
     def json_data(self):
         json_list = list()
         for obj in self._data:
-            json_list.append(str(obj))
+            json_list.append(obj.data)
         return json_list
 
 

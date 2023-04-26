@@ -55,10 +55,10 @@ and password {self._password}"""
 
 
 class DBConnection(TemplateConnection):
-    def __init__(self, host: str, user: str, password: str, dbname: str):
+    def __init__(self, host: str, user: str, password: str, database: str):
         super().__init__(host, user, password)
         self._connected_to_db = True
-        self._dbname = dbname
+        self._dbname = database
 
     def connect(self):
         self._connection = pymysql.connect(
