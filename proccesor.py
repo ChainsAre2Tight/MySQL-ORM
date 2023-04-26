@@ -14,6 +14,7 @@ class AbstractProcessor(ABC):
 
 class GetDataProcessor(AbstractProcessor):
     filter: dict
+    _data: list
 
     def __init__(self, m, con: DBConnection, f: dict | None):
         super().__init__(m, con)
@@ -26,7 +27,7 @@ class GetDataProcessor(AbstractProcessor):
             list_filter.append(f"{key} = {value}")
         return ' AND '.join(list_filter)
 
-    def get_data(self) -> tuple:
+    def get_data(self):
         # generate SQL query
         if self.filter is not None:
             sql = f"SELECT * FROM {self.connection.dbname} WHERE {self.filter_to_string}"
@@ -46,7 +47,19 @@ class GetDataProcessor(AbstractProcessor):
 
         list_of_objects = list()
         for row in data:
-            print(row)
+            list_of_objects.append(DataObject.from_dict(row))
+        self._data = list_of_objects
+
+    @property
+    def data(self):
+        return self._data
+
+    @property
+    def json_data(self):
+        json_list = list()
+        for obj in self._data:
+            json_list.append(str(obj))
+        return json_list
 
 
 class DataObject:
@@ -62,3 +75,6 @@ class DataObject:
     @property
     def data(self):
         return self._data
+
+    def __str__(self) -> str:
+        return str(self._data)

@@ -18,5 +18,6 @@ p2 = GetDataProcessor(
 )
 
 if __name__ == '__main__':
-    p.get_data()
-    # p2.get_data()
+    p2.get_data()
+    print(p2.data)
+    print('\n'.join(p2.json_data))

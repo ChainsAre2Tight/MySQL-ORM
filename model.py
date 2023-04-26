@@ -12,13 +12,6 @@ class Model(ABC):
 
         def all(self) -> tuple:
             raise NotImplementedError
-            # connect to database
-            # get all entries from a database
-            # convert entries to objects
-            # return list of objects
-
-            # or
-
             # create a processor that connects to a database
             # processor must return a list of objects
             # this function only defines that processor must return ALL objects
@@ -26,9 +19,12 @@ class Model(ABC):
     def __init__(self):
         self.objects = Model.Objects(self.fields)
 
+    def __str__(self):
+        return f'{self.__class__} with fields {[str(self.fields[f]) for f in self.fields.keys()]}'
+
 
 class MyModel(Model):
     fields = {
-        'field1': fields.TextField(50),
-        'field2': fields.IntegerField,
+        'field1': fields.TextField(max_length=50),
+        'field2': fields.IntegerField(),
     }
