@@ -1,17 +1,30 @@
 from connector import DBConnection
 from abc import ABC
+from abstract_model import AbstractModel
 
 
-class AbstractProcessor(ABC):
+class _AbstractProcessor(ABC):
     connection: DBConnection
-    model: object
+    model: AbstractModel
+    _data: dict
 
     def __init__(self, m, con: DBConnection):
         self.model = m
         self.connection = con
 
+    @property
+    def data(self):
+        return self._data
 
-class GetDataProcessor(AbstractProcessor):
+    @property
+    def json_data(self):
+        json_list = list()
+        for obj in self._data:
+            json_list.append(obj.data)
+        return json_list
+
+
+class GetDataProcessor(_AbstractProcessor):
     filter: dict
     _data: list
 
@@ -49,16 +62,28 @@ class GetDataProcessor(AbstractProcessor):
             list_of_objects.append(DataObject.from_dict(row))
         self._data = list_of_objects
 
-    @property
-    def data(self):
-        return self._data
 
-    @property
-    def json_data(self):
-        json_list = list()
-        for obj in self._data:
-            json_list.append(obj.data)
-        return json_list
+class GetTableInfoProcessor(_AbstractProcessor):
+    _data = dict
+
+    def get_data(self):
+        # generate SQL query
+        sql = f'SHOW COLUMNS FROM {self.model.table_name}'
+        # create a processor that retrieves column data from a database
+        self.connection.connect()
+        cursor = self.connection.cursor
+
+        # execute sql query
+        cursor.execute(sql)
+        data = cursor.fetchall()
+
+        # close connection
+        self.connection.close()
+
+        list_of_objects = list()
+        for row in data:
+            list_of_objects.append(DataObject.from_dict(row))
+        self._data = list_of_objects
 
 
 class DataObject:

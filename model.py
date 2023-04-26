@@ -1,17 +1,13 @@
 from abc import ABC
 import database_fields
-from proccesor import GetDataProcessor
+from proccesor import GetDataProcessor, GetTableInfoProcessor
 from connector import DBConnection
 from config import Config
-
-
-class AbstractModel(ABC):
-    fields: dict
-    table_name: str
+from abstract_model import AbstractModel
 
 
 class Model(AbstractModel):
-    class Objects:
+    class _Objects:
         _fields: dict
 
         def __init__(self, m: AbstractModel):
@@ -34,18 +30,71 @@ class Model(AbstractModel):
         def filter(self, f: dict) -> tuple:
             return self._get_data(f=f)
 
-    objects: Objects
+    class _Checker:
+        _fields: dict
+        relevant_columns: []
+        irrelevant_columns: []
+
+        def __init__(self, m: AbstractModel):
+            self._model = m
+            self._fields = self._model.fields
+
+        def _get_data(self):
+            # create a processor that connects to a database
+            connection = DBConnection(**Config.connection_data)
+            processor = GetTableInfoProcessor(self._model, connection)
+            processor.get_data()
+            # processor returns a list of objects
+            data = processor.data
+            # this function only defines that processor must return ALL objects (f=None)
+            return data
+
+        def get_relevant_and_irrelevant_columns(self):
+            # retrieve data about columns from table
+            data = self._get_data()
+
+            self.relevant_columns = []
+            self.irrelevant_columns = []
+            # TODO make a column checker that actually works
+            for field_name, field in self._model.fields.items():
+                flag = False
+                for column in data:
+                    column_data = column.data
+                    if column_data['Field'] == field_name and column_data['Type'] == field.sql_data_type:
+                        flag = True
+                if flag:
+                    self.relevant_columns.append(field_name)
+                else:
+                    self.irrelevant_columns.append(field_name)
+
+        def check_if_table_is_relevant(self) -> bool:
+            self.get_relevant_and_irrelevant_columns()
+            if len(self.irrelevant_columns) == 0 and len(self.relevant_columns) == len(self._model.fields.keys()):
+                return True
+            return False
+
+    objects: _Objects
 
     def __init__(self):
-        self.objects = self.Objects(self)
+        self.objects = self._Objects(self)
+        self._checker = self._Checker(self)
 
-    def __str__(self):
-        return f'{self.__class__} with fields {[str(self.fields[f]) for f in self.fields.keys()]}'
+    @property
+    def is_relevant(self):
+        return self._checker.check_if_table_is_relevant()
 
 
 class MyModel(Model):
     table_name = 'test'
     fields = {
-        'field1': database_fields.TextField(max_length=50),
+        'field1': database_fields.TextField(),
         'field2': database_fields.IntegerField(),
+        'aga': database_fields.TextField(),
+    }
+
+
+class TestModel(Model):
+    table_name = 'test'
+    fields = {
+        'aga': database_fields.TextField(),
     }

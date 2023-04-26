@@ -1,7 +1,7 @@
 import unittest
 from connector import *
-from proccesor import GetDataProcessor
-from model import MyModel
+from proccesor import GetDataProcessor, GetTableInfoProcessor
+from model import MyModel, TestModel
 
 c = DBConnection('localhost', 'root', 'root', 'test')
 
@@ -40,6 +40,27 @@ class TestGetDataProcessor(unittest.TestCase):
         ])  # add assertion here
 
 
+class TestGetTableInfoProcessor(unittest.TestCase):
+    def test_get_column_data(self):
+        m = MyModel()
+        p = GetTableInfoProcessor(con=c, m=m)
+        p.get_data()
+        self.assertEqual(p.json_data, [
+            {'Default': None,
+             'Extra': 'auto_increment',
+             'Field': 'id',
+             'Key': 'PRI',
+             'Null': 'NO',
+             'Type': 'int'},
+            {'Default': None,
+             'Extra': '',
+             'Field': 'aga',
+             'Key': '',
+             'Null': 'YES',
+             'Type': 'text'}
+        ])
+
+
 class TestMyModel(unittest.TestCase):
     def test_MyModel_all(self):
         mymodel = MyModel()
@@ -52,6 +73,22 @@ class TestMyModel(unittest.TestCase):
             {'id': 2}
         )],
                          [{'aga': '321', 'id': 2}])
+
+    def test_CheckRelevancy1(self):
+        mymodel = MyModel()
+        print(mymodel.is_relevant)
+        print(mymodel._checker.relevant_columns)
+        print(mymodel._checker.irrelevant_columns)
+        print()
+        self.assertFalse(mymodel.is_relevant)
+
+    def test_CheckRelevancy2(self):
+        mymodel = TestModel()
+        print(mymodel.is_relevant)
+        print(mymodel._checker.relevant_columns)
+        print(mymodel._checker.irrelevant_columns)
+        print()
+        self.assertTrue(mymodel.is_relevant)
 
 
 if __name__ == '__main__':
