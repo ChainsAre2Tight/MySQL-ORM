@@ -1,5 +1,5 @@
 from connector import *
-from proccesor import GetDataProcessor
+from processor import GetDataProcessor
 from model import MyModel
 
 if __name__ == '__main__':

@@ -1,6 +1,6 @@
 import unittest
 from connector import *
-from proccesor import GetDataProcessor, GetTableInfoProcessor
+from processor import GetDataProcessor, GetTableInfoProcessor
 from model import MyModel, TestModel
 
 c = DBConnection('localhost', 'root', 'root', 'test')
