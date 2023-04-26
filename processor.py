@@ -1,6 +1,7 @@
 from connector import DBConnection
 from abc import ABC
 from abstract_model import AbstractModel
+from dataobject import DataObject
 
 
 class _AbstractProcessor(ABC):
@@ -86,19 +87,3 @@ class GetTableInfoProcessor(_AbstractProcessor):
         self._data = list_of_objects
 
 
-class DataObject:
-    _data: tuple
-
-    def __init__(self, d):
-        self._data = d
-
-    @staticmethod
-    def from_dict(d):
-        return DataObject(d)
-
-    @property
-    def data(self):
-        return self._data
-
-    def __str__(self) -> str:
-        return str(self._data)
