@@ -34,4 +34,4 @@ class IntegerField(Field):
 
     @property
     def sql_data_type(self) -> str:
-        return f'INT'
+        return f'int'
