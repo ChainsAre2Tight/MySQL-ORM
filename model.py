@@ -1,4 +1,3 @@
-from abc import ABC
 import database_fields
 from proccesor import GetDataProcessor, GetTableInfoProcessor
 from connector import DBConnection
@@ -32,8 +31,8 @@ class Model(AbstractModel):
 
     class _Checker:
         _fields: dict
-        relevant_columns: []
-        irrelevant_columns: []
+        relevant_columns: dict
+        irrelevant_columns: dict
 
         def __init__(self, m: AbstractModel):
             self._model = m
@@ -53,8 +52,8 @@ class Model(AbstractModel):
             # retrieve data about columns from table
             data = self._get_data()
 
-            self.relevant_columns = []
-            self.irrelevant_columns = []
+            self.relevant_columns = dict()
+            self.irrelevant_columns = dict()
             # TODO make a column checker that actually works
             for field_name, field in self._model.fields.items():
                 flag = False
@@ -63,9 +62,9 @@ class Model(AbstractModel):
                     if column_data['Field'] == field_name and column_data['Type'] == field.sql_data_type:
                         flag = True
                 if flag:
-                    self.relevant_columns.append(field_name)
+                    self.relevant_columns[field_name] = field
                 else:
-                    self.irrelevant_columns.append(field_name)
+                    self.irrelevant_columns[field_name] = field
 
         def check_if_table_is_relevant(self) -> bool:
             self.get_relevant_and_irrelevant_columns()
@@ -74,6 +73,7 @@ class Model(AbstractModel):
             return False
 
     objects: _Objects
+    _checker: _Checker
 
     def __init__(self):
         self.objects = self._Objects(self)

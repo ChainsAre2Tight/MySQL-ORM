@@ -76,19 +76,21 @@ class TestMyModel(unittest.TestCase):
 
     def test_CheckRelevancy1(self):
         mymodel = MyModel()
-        print(mymodel.is_relevant)
+        res = mymodel.is_relevant
+        print(res)
         print(mymodel._checker.relevant_columns)
         print(mymodel._checker.irrelevant_columns)
         print()
-        self.assertFalse(mymodel.is_relevant)
+        self.assertFalse(res)
 
     def test_CheckRelevancy2(self):
         mymodel = TestModel()
-        print(mymodel.is_relevant)
+        res = mymodel.is_relevant
+        print()
         print(mymodel._checker.relevant_columns)
         print(mymodel._checker.irrelevant_columns)
         print()
-        self.assertTrue(mymodel.is_relevant)
+        self.assertTrue(res)
 
 
 if __name__ == '__main__':
