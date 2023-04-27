@@ -3,19 +3,18 @@ from internals.dataobject import DataObject
 
 
 class _AbstractConnection(ABC):
-
-    def __init__(self, host: str, user: str, password: str):
-        self._host = host
-        self._user = user
-        self._password = password
-        self._connected_to_db = False
-        self._connection = None
+    _host: str
+    _user: str
+    _password: str
+    _connected_to_db: bool
+    _connection: object | None
 
     @abstractmethod
     def connect(self):
         pass
 
     @property
+    @abstractmethod
     def connection(self):
         return self._connection
 
@@ -32,13 +31,9 @@ class _AbstractConnection(ABC):
     def commit(self):
         pass
 
+    @property
     def is_connected_to_db(self):
         return self._connected_to_db
-
-    def __str__(self):
-        return f"""Connected to {self._host}
-as user {self._user}
-and password {self._password}"""
 
     @property
     @abstractmethod
