@@ -3,6 +3,11 @@ from internals.dataobject import DataObject
 
 
 class _AbstractConnection(ABC):
+    _host: str
+    _user: str
+    _password: str
+    _connected_to_db: bool
+    _connection: object
 
     def __init__(self, host: str, user: str, password: str):
         self._host = host
