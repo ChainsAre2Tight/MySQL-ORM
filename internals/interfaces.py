@@ -68,7 +68,7 @@ class _AbstractModel(ABC):
 class _AbstractProcessor(ABC):
     connection: _AbstractConnection
     model: _AbstractModel
-    _data: dict
+    _data: list
 
     def __init__(self, m, con: _AbstractConnection):
         self.model = m

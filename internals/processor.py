@@ -52,7 +52,7 @@ class GetDataProcessor(_GetProcessor):
 
 
 class GetTableInfoProcessor(_GetProcessor):
-    _data = dict
+    _data = list
 
     def get_data(self):
         # generate SQL query
