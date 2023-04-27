@@ -83,4 +83,7 @@ class _AbstractProcessor(ABC):
     def data(self):
         return self._data
 
+class _Config(ABC):
+    connection_data: dict
+
 
