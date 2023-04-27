@@ -8,7 +8,7 @@ from internals.dataobject import DataObject
 
 class Model(_AbstractModel):
     class _Objects:
-        _fields: dict
+        _fields: dict[str: database_fields.Field]
 
         def __init__(self, m: _AbstractModel):
             self._model = m
@@ -21,7 +21,6 @@ class Model(_AbstractModel):
             processor.get_data()
             # processor must return a list of objects
             data = processor.data
-            # this function only defines that processor must return ALL objects (f=None)
             return data
 
         def all(self) -> list[DataObject]:
