@@ -89,7 +89,7 @@ class Model(AbstractModel):
     def is_relevant(self):
         return self._checker.check_if_table_is_relevant()
 
-    def add_data(self, data: list[DataObject], commit: True):
+    def add_data(self, data: list[DataObject], commit: bool = False):
         self.objects.insert_data(data=data, commit=commit)
 
 

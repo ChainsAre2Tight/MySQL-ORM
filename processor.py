@@ -94,7 +94,7 @@ class InsertDataProcessor(_AbstractProcessor):
         super().__init__(m, con)
         self._data = d
 
-    def generate_sql(self) -> str:
+    def generate_sql(self) -> tuple[str, list]:
         values_list: list[dict]
         sql: str
 
@@ -111,18 +111,19 @@ class InsertDataProcessor(_AbstractProcessor):
 
         data_to_string = ', '.join([f"({', '.join(row)})" for row in data])
 
-        sql = f"""INSERT INTO {self.model.table_name} ({fields_to_string}) VALUES {data_to_string};"""
-        return sql
+        sql = f"""INSERT INTO {self.model.table_name} ({fields_to_string}) VALUES ({'%s'*len(fields)});"""
+        return sql, data
 
     def insert_data(self, commit: bool):
         # generate SQL query
-        sql = self.generate_sql()
+        sql, data = self.generate_sql()
         # create a processor that retrieves column data from a database
         self.connection.connect()
         cursor = self.connection.cursor
 
         # execute sql query
-        cursor.execute(sql)
+        for row in data:
+            cursor.execute(sql, row)
         if commit:
             self.connection.commit()
 
