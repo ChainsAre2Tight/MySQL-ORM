@@ -1,22 +1,9 @@
 from connector import DBConnection
-from abc import ABC
-from abstract_model import AbstractModel
+from interfaces import AbstractProcessor
 from dataobject import DataObject
 
 
-class _AbstractProcessor(ABC):
-    connection: DBConnection
-    model: AbstractModel
-    _data: dict
-
-    def __init__(self, m, con: DBConnection):
-        self.model = m
-        self.connection = con
-
-    @property
-    def data(self):
-        return self._data
-
+class _GetProcessor(AbstractProcessor):
     @property
     def json_data(self):
         json_list = list()
@@ -25,7 +12,7 @@ class _AbstractProcessor(ABC):
         return json_list
 
 
-class GetDataProcessor(_AbstractProcessor):
+class GetDataProcessor(_GetProcessor):
     filter: dict
     _data: list
 
@@ -64,7 +51,7 @@ class GetDataProcessor(_AbstractProcessor):
         self._data = list_of_objects
 
 
-class GetTableInfoProcessor(_AbstractProcessor):
+class GetTableInfoProcessor(_GetProcessor):
     _data = dict
 
     def get_data(self):
@@ -87,7 +74,7 @@ class GetTableInfoProcessor(_AbstractProcessor):
         self._data = list_of_objects
 
 
-class InsertDataProcessor(_AbstractProcessor):
+class InsertDataProcessor(AbstractProcessor):
     _data = list
 
     def __init__(self, m, con: DBConnection, d: list[DataObject]):
@@ -111,7 +98,7 @@ class InsertDataProcessor(_AbstractProcessor):
 
         data_to_string = ', '.join([f"({', '.join(row)})" for row in data])
 
-        sql = f"""INSERT INTO {self.model.table_name} ({fields_to_string}) VALUES ({'%s'*len(fields)});"""
+        sql = f"""INSERT INTO {self.model.table_name} ({fields_to_string}) VALUES ({'%s' * len(fields)});"""
         return sql, data
 
     def insert_data(self, commit: bool):

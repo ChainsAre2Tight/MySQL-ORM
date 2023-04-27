@@ -2,7 +2,7 @@ import database_fields
 from processor import GetDataProcessor, GetTableInfoProcessor, InsertDataProcessor
 from connector import DBConnection
 from config import Config
-from abstract_model import AbstractModel
+from interfaces import AbstractModel
 from dataobject import DataObject
 
 

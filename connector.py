@@ -1,8 +1,8 @@
 import pymysql.cursors
-from abc import ABC, abstractmethod
+from interfaces import AbstractConnection
 
 
-class TemplateConnection(ABC):
+class TemplateConnection(AbstractConnection):
 
     def __init__(self, host: str, user: str, password: str):
         self._host = host
@@ -11,7 +11,6 @@ class TemplateConnection(ABC):
         self._connected_to_db = False
         self._connection = None
 
-    @abstractmethod
     def connect(self):
         self._connection = pymysql.connect(
             host=self._host,
@@ -44,7 +43,6 @@ as user {self._user}
 and password {self._password}"""
 
     @property
-    @abstractmethod
     def information(self):
         return {
             'host': self._host,
