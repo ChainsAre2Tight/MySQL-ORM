@@ -29,4 +29,4 @@ class ColumnFieldData:
             if self.datatype == other.datatype and self.position == other.position:
                 return True
             return False
-        raise NotImplementedError('cannot compare instances of different classes')
+        raise NotImplementedError('Cannot compare instances of different classes')
