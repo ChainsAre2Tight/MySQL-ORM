@@ -33,7 +33,5 @@ MODIFY COLUMN field2 int AFTER field1;
 """, mock_out.getvalue())
 
 
-
-
 if __name__ == '__main__':
     unittest.main()
