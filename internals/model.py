@@ -14,7 +14,7 @@ class Model(_AbstractModel):
             self._model = m
             self._fields = self._model.fields
 
-        def _get_data(self, f: dict | None):
+        def _get_data(self, f: dict | None) -> list[DataObject]:
             # create a processor that connects to a database
             connection = DBConnection(**Config.connection_data)
             processor = GetDataProcessor(self._model, connection, f=f)
