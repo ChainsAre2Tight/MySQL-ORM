@@ -2,15 +2,15 @@ import internals.database_fields as database_fields
 from internals.processor import GetDataProcessor, GetTableInfoProcessor, InsertDataProcessor
 from internals.connector import DBConnection
 from config import Config
-from internals.interfaces import AbstractModel
+from internals.interfaces import _AbstractModel
 from internals.dataobject import DataObject
 
 
-class Model(AbstractModel):
+class Model(_AbstractModel):
     class _Objects:
         _fields: dict
 
-        def __init__(self, m: AbstractModel):
+        def __init__(self, m: _AbstractModel):
             self._model = m
             self._fields = self._model.fields
 
@@ -41,7 +41,7 @@ class Model(AbstractModel):
         relevant_columns: dict
         irrelevant_columns: dict
 
-        def __init__(self, m: AbstractModel):
+        def __init__(self, m: _AbstractModel):
             self._model = m
             self._fields = self._model.fields
 

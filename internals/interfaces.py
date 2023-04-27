@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from internals.dataobject import DataObject
 
 
-class AbstractConnection(ABC):
+class _AbstractConnection(ABC):
 
     def __init__(self, host: str, user: str, password: str):
         self._host = host
@@ -50,7 +50,7 @@ and password {self._password}"""
         }
 
 
-class AbstractModel(ABC):
+class _AbstractModel(ABC):
     fields: dict
     table_name: str
     objects: object
@@ -65,12 +65,12 @@ class AbstractModel(ABC):
         pass
 
 
-class AbstractProcessor(ABC):
-    connection: AbstractConnection
-    model: AbstractModel
+class _AbstractProcessor(ABC):
+    connection: _AbstractConnection
+    model: _AbstractModel
     _data: dict
 
-    def __init__(self, m, con: AbstractConnection):
+    def __init__(self, m, con: _AbstractConnection):
         self.model = m
         self.connection = con
 

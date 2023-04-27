@@ -1,9 +1,9 @@
 from internals.connector import DBConnection
-from internals.interfaces import AbstractProcessor
+from internals.interfaces import _AbstractProcessor
 from internals.dataobject import DataObject
 
 
-class _GetProcessor(AbstractProcessor):
+class _GetProcessor(_AbstractProcessor):
     @property
     def json_data(self):
         json_list = list()
@@ -74,7 +74,7 @@ class GetTableInfoProcessor(_GetProcessor):
         self._data = list_of_objects
 
 
-class InsertDataProcessor(AbstractProcessor):
+class InsertDataProcessor(_AbstractProcessor):
     _data = list
 
     def __init__(self, m, con: DBConnection, d: list[DataObject]):

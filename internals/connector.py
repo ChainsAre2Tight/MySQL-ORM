@@ -1,8 +1,8 @@
 import pymysql.cursors
-from internals.interfaces import AbstractConnection
+from internals.interfaces import _AbstractConnection
 
 
-class TemplateConnection(AbstractConnection):
+class TemplateConnection(_AbstractConnection):
 
     def __init__(self, host: str, user: str, password: str):
         self._host = host
