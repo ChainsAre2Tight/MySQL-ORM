@@ -1,4 +1,4 @@
-from internals.interfaces import _Config
+from internals.interfaces import Config
 
 
 class Config(_Config):

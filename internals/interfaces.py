@@ -184,7 +184,7 @@ class _AbstractProcessor(ABC):
         return self._data
 
 
-class _Config(ABC):
+class Config(ABC):
     """Interface for configuration"""
     connection_data: dict
 
