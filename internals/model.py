@@ -7,7 +7,7 @@ from internals.dataobject import DataObject
 
 
 class Model(_AbstractModel):
-    class _Objects:
+    class _Objects(_AbstractModel._Objects):
         _fields: dict[str: database_fields.Field]
 
         def __init__(self, m: _AbstractModel):
@@ -35,7 +35,7 @@ class Model(_AbstractModel):
             processor = InsertDataProcessor(self._model, connection, data)
             processor.insert_data(commit=commit)
 
-    class _Checker:
+    class _Checker(_AbstractModel._Checker):
         _fields: dict
         _staged_changes = list()
 

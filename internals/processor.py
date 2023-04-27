@@ -97,8 +97,6 @@ class InsertDataProcessor(_AbstractProcessor):
         fields = list(values_list[0].keys())
         fields_to_string = ', '.join(fields)
 
-        data_to_string = ', '.join([f"({', '.join(row)})" for row in data])
-
         sql = f"""INSERT INTO {self.model.table_name} ({fields_to_string}) VALUES ({'%s' * len(fields)});"""
         return sql, data
 
@@ -153,7 +151,7 @@ class RemoveColumnProcessor(_AlterTableProcessor):
 
 
 class SwapColumnsProcessor(_AlterTableProcessor):
-    def generate_sql(self, field) -> str:
+    def generate_sql(self, field):
         sql = f"""ALTER TABLE {self.model.table_name}
 MODIFY COLUMN {field['Field']} {field['Type']} AFTER {field['Previous']};"""
         self._sql = sql

@@ -24,6 +24,7 @@ class _AbstractConnection(ABC):
         pass
 
     @property
+    @abstractmethod
     def cursor(self):
         pass
 
@@ -55,6 +56,56 @@ class _AbstractModel(ABC):
     table_name: str
     objects: object
     checker: object
+
+    class _Objects(ABC):
+        _fields: dict
+
+        @abstractmethod
+        def _get_data(self, f: dict | None) -> list:
+            pass
+
+        @abstractmethod
+        def all(self) -> list[DataObject]:
+            pass
+
+        @abstractmethod
+        def filter(self, f: dict) -> list[DataObject]:
+            pass
+
+        @abstractmethod
+        def insert_data(self, data: list[DataObject], commit: bool):
+            pass
+
+    class _Checker(ABC):
+        _fields: dict
+        _staged_changes = list()
+
+        @abstractmethod
+        def _get_data(self) -> list:
+            pass
+
+        @abstractmethod
+        def get_changes(self) -> dict[str: list[dict]]:
+            pass
+
+        @abstractmethod
+        def get_ordered_fields(self) -> list[dict[str: str]]:
+            pass
+
+        @abstractmethod
+        def check_if_table_is_relevant(self) -> bool:
+            pass
+
+        @abstractmethod
+        def stage_changes(self):
+            pass
+
+        @property
+        def staged_changes(self):
+            return self._staged_changes
+
+    objects: _Objects
+    checker: _Checker
 
     @abstractmethod
     def is_relevant(self) -> bool:
@@ -93,4 +144,3 @@ class _AbstractMigrator(ABC):
     @abstractmethod
     def migrate(self):
         pass
-
