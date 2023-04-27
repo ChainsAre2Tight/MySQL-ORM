@@ -139,7 +139,6 @@ class Model(_AbstractModel):
         self.objects = self._Objects(self)
         self.checker = self._Checker(self)
 
-    # TODO move this method to a migrator as it shouldn't be here
     def is_relevant(self):
         return self.checker.check_if_table_is_relevant()
 
