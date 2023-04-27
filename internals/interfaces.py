@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from dataobject import DataObject
+from internals.dataobject import DataObject
 
 
 class AbstractConnection(ABC):

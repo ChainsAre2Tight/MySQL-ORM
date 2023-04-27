@@ -1,5 +1,5 @@
 import unittest
-from connector import TemplateConnection, DBConnection
+from internals.connector import TemplateConnection, DBConnection
 
 configuration = ('localhost', 'root', 'root')
 

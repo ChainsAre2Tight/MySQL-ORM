@@ -1,5 +1,5 @@
 import pymysql.cursors
-from interfaces import AbstractConnection
+from internals.interfaces import AbstractConnection
 
 
 class TemplateConnection(AbstractConnection):

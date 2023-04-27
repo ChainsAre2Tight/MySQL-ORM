@@ -1,7 +1,5 @@
-from connector import *
-from processor import GetDataProcessor
-from model import MyModel, TestModel
-from dataobject import DataObject
+from model import TestModel
+from internals.dataobject import DataObject
 
 if __name__ == '__main__':
     my_model = TestModel()

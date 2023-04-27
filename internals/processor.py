@@ -1,6 +1,6 @@
-from connector import DBConnection
-from interfaces import AbstractProcessor
-from dataobject import DataObject
+from internals.connector import DBConnection
+from internals.interfaces import AbstractProcessor
+from internals.dataobject import DataObject
 
 
 class _GetProcessor(AbstractProcessor):

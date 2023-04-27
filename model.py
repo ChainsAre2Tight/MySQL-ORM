@@ -1,9 +1,9 @@
-import database_fields
-from processor import GetDataProcessor, GetTableInfoProcessor, InsertDataProcessor
-from connector import DBConnection
+import internals.database_fields as database_fields
+from internals.processor import GetDataProcessor, GetTableInfoProcessor, InsertDataProcessor
+from internals.connector import DBConnection
 from config import Config
-from interfaces import AbstractModel
-from dataobject import DataObject
+from internals.interfaces import AbstractModel
+from internals.dataobject import DataObject
 
 
 class Model(AbstractModel):
