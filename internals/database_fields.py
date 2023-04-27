@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 
 class Field(ABC):
     _value: None
+    # TODO make support for nullifiables
 
     def __init__(self, *args, **kwargs):
         pass

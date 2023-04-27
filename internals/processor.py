@@ -116,4 +116,43 @@ class InsertDataProcessor(_AbstractProcessor):
 
         # close connection
         self.connection.close()
-        pass
+
+
+class _AlterTableProcessor(_AbstractProcessor):
+    _sql: str
+
+    def generate_sql(self, field):
+        sql = ''
+        self._sql = sql
+
+    def perform(self, debug=False):
+
+        if not debug:
+            self.connection.connect()
+            cursor = self.connection.cursor
+            cursor.execute(self._sql)
+
+            self.connection.commit()
+            self.connection.close()
+        else:
+            print(self._sql)
+
+
+class AddColumnProcessor(_AlterTableProcessor):
+    # TODO make support for default values
+    def generate_sql(self, field):
+        sql = f"ALTER TABLE {self.model.table_name} ADD {field['Field']} {field['Type']};"
+        self._sql = sql
+
+
+class RemoveColumnProcessor(_AlterTableProcessor):
+    def generate_sql(self, field):
+        sql = f"ALTER TABLE {self.model.table_name} DROP COLUMN {field['Field']};"
+        self._sql = sql
+
+
+class SwapColumnsProcessor(_AlterTableProcessor):
+    def generate_sql(self, field) -> str:
+        sql = f"""ALTER TABLE {self.model.table_name}
+MODIFY COLUMN {field['Field']} {field['Type']} AFTER {field['Previous']};"""
+        self._sql = sql

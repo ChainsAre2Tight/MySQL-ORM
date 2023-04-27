@@ -2,8 +2,9 @@ import internals.database_fields as database_fields
 from internals.processor import GetDataProcessor, GetTableInfoProcessor, InsertDataProcessor
 from internals.connector import DBConnection
 from config import Config
-from internals.interfaces import _AbstractModel
+from internals.interfaces import _AbstractModel, _AbstractMigratorProcessor
 from internals.dataobject import DataObject
+from internals.migrator import stage_add_column, stage_remove_column, stage_swap_column
 
 
 class Model(_AbstractModel):
@@ -37,8 +38,7 @@ class Model(_AbstractModel):
 
     class _Checker:
         _fields: dict
-        relevant_columns: dict
-        irrelevant_columns: dict
+        _staged_changes = list()
 
         def __init__(self, m: _AbstractModel):
             self._model = m
@@ -114,27 +114,35 @@ class Model(_AbstractModel):
 
         def stage_changes(self):
             changes = self.get_changes()
+
+            list_of_changes = list()
             for odd_field in changes['odd']:
                 # stage deletion
-                raise NotImplementedError
+                list_of_changes.append(stage_remove_column(self._model, odd_field))
             for missing_field in changes['missing']:
                 # stage creation
-                raise NotImplementedError
+                list_of_changes.append(stage_add_column(self._model, missing_field))
             ordered_fields = self.get_ordered_fields()
             for field in ordered_fields:
                 # stage column swap
-                raise NotImplementedError
+                list_of_changes.append(stage_swap_column(self._model, field))
+
+            self._staged_changes = list_of_changes
+
+        @property
+        def staged_changes(self):
+            return self._staged_changes
 
     objects: _Objects
-    _checker: _Checker
+    checker: _Checker
 
     def __init__(self):
         self.objects = self._Objects(self)
-        self._checker = self._Checker(self)
+        self.checker = self._Checker(self)
 
     # TODO move this method to a migrator as it shouldn't be here
     def is_relevant(self):
-        return self._checker.check_if_table_is_relevant()
+        return self.checker.check_if_table_is_relevant()
 
     def add_data(self, data: list[DataObject], commit: bool = False):
         self.objects.insert_data(data=data, commit=commit)
