@@ -76,7 +76,7 @@ class TestMyModel(unittest.TestCase):
 
     def test_CheckRelevancy1(self):
         mymodel = MyModel()
-        res = mymodel.is_relevant
+        res = mymodel.is_relevant()
         print(res)
         print(mymodel._checker.relevant_columns)
         print(mymodel._checker.irrelevant_columns)
@@ -85,7 +85,7 @@ class TestMyModel(unittest.TestCase):
 
     def test_CheckRelevancy2(self):
         mymodel = TestModel()
-        res = mymodel.is_relevant
+        res = mymodel.is_relevant()
         print()
         print(mymodel._checker.relevant_columns)
         print(mymodel._checker.irrelevant_columns)

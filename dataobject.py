@@ -1,5 +1,5 @@
 class DataObject:
-    _data: tuple
+    _data: dict
 
     def __init__(self, d):
         self._data = d

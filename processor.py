@@ -87,3 +87,45 @@ class GetTableInfoProcessor(_AbstractProcessor):
         self._data = list_of_objects
 
 
+class InsertDataProcessor(_AbstractProcessor):
+    _data = list
+
+    def __init__(self, m, con: DBConnection, d: list[DataObject]):
+        super().__init__(m, con)
+        self._data = d
+
+    def generate_sql(self) -> str:
+        values_list: list[dict]
+        sql: str
+
+        data = list()
+        values_list = list()
+        for obj in self._data:
+            row = obj.data
+            values_list.append(row)
+            data.append(list(row.values()))
+
+        fields: list[str]
+        fields = list(values_list[0].keys())
+        fields_to_string = ', '.join(fields)
+
+        data_to_string = ', '.join([f"({', '.join(row)})" for row in data])
+
+        sql = f"""INSERT INTO {self.model.table_name} ({fields_to_string}) VALUES {data_to_string};"""
+        return sql
+
+    def insert_data(self, commit: bool):
+        # generate SQL query
+        sql = self.generate_sql()
+        # create a processor that retrieves column data from a database
+        self.connection.connect()
+        cursor = self.connection.cursor
+
+        # execute sql query
+        cursor.execute(sql)
+        if commit:
+            self.connection.commit()
+
+        # close connection
+        self.connection.close()
+        pass

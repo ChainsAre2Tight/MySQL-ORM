@@ -1,5 +1,5 @@
 import database_fields
-from processor import GetDataProcessor, GetTableInfoProcessor
+from processor import GetDataProcessor, GetTableInfoProcessor, InsertDataProcessor
 from connector import DBConnection
 from config import Config
 from abstract_model import AbstractModel
@@ -24,11 +24,17 @@ class Model(AbstractModel):
             # this function only defines that processor must return ALL objects (f=None)
             return data
 
-        def all(self) -> tuple:
+        def all(self) -> list[DataObject]:
             return self._get_data(f=None)
 
-        def filter(self, f: dict) -> tuple:
+        def filter(self, f: dict) -> list[DataObject]:
             return self._get_data(f=f)
+
+        def insert_data(self, data: list[DataObject], commit: bool):
+            # create a processor that connects to a database
+            connection = DBConnection(**Config.connection_data)
+            processor = InsertDataProcessor(self._model, connection, data)
+            processor.insert_data(commit=commit)
 
     class _Checker:
         _fields: dict
@@ -73,13 +79,6 @@ class Model(AbstractModel):
                 return True
             return False
 
-    class _Inserter:
-        _fields: dict
-
-        def __init__(self, m: AbstractModel):
-            self._model = m
-            self._fields = self._model.fields
-
     objects: _Objects
     _checker: _Checker
 
@@ -87,13 +86,11 @@ class Model(AbstractModel):
         self.objects = self._Objects(self)
         self._checker = self._Checker(self)
 
-    @property
     def is_relevant(self):
         return self._checker.check_if_table_is_relevant()
 
-    def add_data(self, data: list[DataObject]):
-        raise NotImplementedError
-
+    def add_data(self, data: list[DataObject], commit: True):
+        self.objects.insert_data(data=data, commit=commit)
 
 
 class MyModel(Model):
