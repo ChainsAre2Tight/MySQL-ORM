@@ -59,6 +59,11 @@ class Model(_AbstractModel):
             # retrieve data about columns from table
             data = self._get_data()
 
+# Cheker should work the following way:
+# create a dict for both columns in a table and fields of a model, {name: status}
+# status indicates whether a column/field matches its counterpart or is missing/odd
+# for field ...
+
             self.relevant_columns = dict()
             self.irrelevant_columns = dict()
             # TODO make a column checker that actually works
