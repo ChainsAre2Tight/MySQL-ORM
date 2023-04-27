@@ -7,20 +7,14 @@ class _AbstractConnection(ABC):
     _user: str
     _password: str
     _connected_to_db: bool
-    _connection: object
-
-    def __init__(self, host: str, user: str, password: str):
-        self._host = host
-        self._user = user
-        self._password = password
-        self._connected_to_db = False
-        self._connection = None
+    _connection: object | None
 
     @abstractmethod
     def connect(self):
         pass
 
     @property
+    @abstractmethod
     def connection(self):
         return self._connection
 
@@ -29,6 +23,7 @@ class _AbstractConnection(ABC):
         pass
 
     @property
+    @abstractmethod
     def cursor(self):
         pass
 
@@ -36,13 +31,9 @@ class _AbstractConnection(ABC):
     def commit(self):
         pass
 
+    @property
     def is_connected_to_db(self):
         return self._connected_to_db
-
-    def __str__(self):
-        return f"""Connected to {self._host}
-as user {self._user}
-and password {self._password}"""
 
     @property
     @abstractmethod
@@ -59,7 +50,57 @@ class _AbstractModel(ABC):
     fields: dict
     table_name: str
     objects: object
-    _checker: object
+    checker: object
+
+    class _Objects(ABC):
+        _fields: dict
+
+        @abstractmethod
+        def _get_data(self, f: dict | None) -> list:
+            pass
+
+        @abstractmethod
+        def all(self) -> list[DataObject]:
+            pass
+
+        @abstractmethod
+        def filter(self, f: dict) -> list[DataObject]:
+            pass
+
+        @abstractmethod
+        def insert_data(self, data: list[DataObject], commit: bool):
+            pass
+
+    class _Checker(ABC):
+        _fields: dict
+        _staged_changes = list()
+
+        @abstractmethod
+        def _get_data(self) -> list:
+            pass
+
+        @abstractmethod
+        def get_changes(self) -> dict[str: list[dict]]:
+            pass
+
+        @abstractmethod
+        def get_ordered_fields(self) -> list[dict[str: str]]:
+            pass
+
+        @abstractmethod
+        def check_if_table_is_relevant(self) -> bool:
+            pass
+
+        @abstractmethod
+        def stage_changes(self):
+            pass
+
+        @property
+        def staged_changes(self):
+            return self._staged_changes
+
+    objects: _Objects
+    checker: _Checker
 
     @abstractmethod
     def is_relevant(self) -> bool:
@@ -73,7 +114,7 @@ class _AbstractModel(ABC):
 class _AbstractProcessor(ABC):
     connection: _AbstractConnection
     model: _AbstractModel
-    _data: dict
+    _data: list
 
     def __init__(self, m, con: _AbstractConnection):
         self.model = m
@@ -87,3 +128,17 @@ class _Config(ABC):
     connection_data: dict
 
 
+class _AbstractMigrator(ABC):
+    migrations: list
+
+    @abstractmethod
+    def make_migrations(self, list_of_models: list[_AbstractModel]):
+        """
+        Stages migrations for all given models
+        :param list_of_models:
+        """
+        pass
+
+    @abstractmethod
+    def migrate(self):
+        pass

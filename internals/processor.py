@@ -1,6 +1,7 @@
 from internals.connector import DBConnection
 from internals.interfaces import _AbstractProcessor
 from internals.dataobject import DataObject
+from config import Config
 
 
 class _GetProcessor(_AbstractProcessor):
@@ -52,7 +53,7 @@ class GetDataProcessor(_GetProcessor):
 
 
 class GetTableInfoProcessor(_GetProcessor):
-    _data = dict
+    _data = list
 
     def get_data(self):
         # generate SQL query
@@ -96,8 +97,6 @@ class InsertDataProcessor(_AbstractProcessor):
         fields = list(values_list[0].keys())
         fields_to_string = ', '.join(fields)
 
-        data_to_string = ', '.join([f"({', '.join(row)})" for row in data])
-
         sql = f"""INSERT INTO {self.model.table_name} ({fields_to_string}) VALUES ({'%s' * len(fields)});"""
         return sql, data
 
@@ -116,4 +115,75 @@ class InsertDataProcessor(_AbstractProcessor):
 
         # close connection
         self.connection.close()
-        pass
+
+
+class _AlterTableProcessor(_AbstractProcessor):
+    _sql: str
+
+    def generate_sql(self, field):
+        sql = ''
+        self._sql = sql
+
+    def perform(self, debug=False):
+
+        if not debug:
+            self.connection.connect()
+            cursor = self.connection.cursor
+            cursor.execute(self._sql)
+
+            self.connection.commit()
+            self.connection.close()
+        else:
+            print(self._sql)
+
+
+class AddColumnProcessor(_AlterTableProcessor):
+    # TODO make support for default values
+    def generate_sql(self, field):
+        sql = f"ALTER TABLE {self.model.table_name} ADD {field['Field']} {field['Type']};"
+        self._sql = sql
+
+
+class RemoveColumnProcessor(_AlterTableProcessor):
+    def generate_sql(self, field):
+        sql = f"ALTER TABLE {self.model.table_name} DROP COLUMN {field['Field']};"
+        self._sql = sql
+
+
+class SwapColumnsProcessor(_AlterTableProcessor):
+    def generate_sql(self, field):
+        sql = f"""ALTER TABLE {self.model.table_name}
+MODIFY COLUMN {field['Field']} {field['Type']} AFTER {field['Previous']};"""
+        self._sql = sql
+
+
+class MigrationProcessor:
+    @staticmethod
+    def stage_add_column(model, field):
+        def perform_add_column(debug=False):
+            connection = DBConnection(**Config.connection_data)
+            processor = AddColumnProcessor(model, connection)
+            processor.generate_sql(field)
+            processor.perform(debug=debug)
+
+        return perform_add_column
+
+    @staticmethod
+    def stage_remove_column(model, field):
+        def perform_delete_column(debug=False):
+            connection = DBConnection(**Config.connection_data)
+            processor = RemoveColumnProcessor(model, connection)
+            processor.generate_sql(field)
+            processor.perform(debug=debug)
+
+        return perform_delete_column
+
+    @staticmethod
+    def stage_swap_column(model, field):
+        def perform_swap_columns(debug=False):
+            connection = DBConnection(**Config.connection_data)
+            processor = SwapColumnsProcessor(model, connection)
+            processor.generate_sql(field)
+            processor.perform(debug=debug)
+
+        return perform_swap_columns

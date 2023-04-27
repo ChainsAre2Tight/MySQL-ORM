@@ -7,7 +7,6 @@ class MyModel(Model):
     fields = {
         'field1': TextField(),
         'field2': IntegerField(),
-        'aga': TextField(),
     }
 
 

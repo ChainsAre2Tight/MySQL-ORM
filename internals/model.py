@@ -1,5 +1,5 @@
 import internals.database_fields as database_fields
-from internals.processor import GetDataProcessor, GetTableInfoProcessor, InsertDataProcessor
+from internals.processor import GetDataProcessor, GetTableInfoProcessor, InsertDataProcessor, MigrationProcessor
 from internals.connector import DBConnection
 from config import Config
 from internals.interfaces import _AbstractModel
@@ -7,8 +7,8 @@ from internals.dataobject import DataObject
 
 
 class Model(_AbstractModel):
-    class _Objects:
-        _fields: dict
+    class _Objects(_AbstractModel._Objects):
+        _fields: dict[str: database_fields.Field]
 
         def __init__(self, m: _AbstractModel):
             self._model = m
@@ -21,7 +21,6 @@ class Model(_AbstractModel):
             processor.get_data()
             # processor must return a list of objects
             data = processor.data
-            # this function only defines that processor must return ALL objects (f=None)
             return data
 
         def all(self) -> list[DataObject]:
@@ -36,10 +35,9 @@ class Model(_AbstractModel):
             processor = InsertDataProcessor(self._model, connection, data)
             processor.insert_data(commit=commit)
 
-    class _Checker:
+    class _Checker(_AbstractModel._Checker):
         _fields: dict
-        relevant_columns: dict
-        irrelevant_columns: dict
+        _staged_changes = list()
 
         def __init__(self, m: _AbstractModel):
             self._model = m
@@ -52,45 +50,97 @@ class Model(_AbstractModel):
             processor.get_data()
             # processor returns a list of objects
             data = processor.data
-            # this function only defines that processor must return ALL objects (f=None)
+            data.pop(0)  # remove reference to 'id' field
             return data
 
-        def get_relevant_and_irrelevant_columns(self):
+        def get_changes(self) -> dict[str: list[dict]]:
+            changes = {
+                'odd': list(),
+                'missing': list(),
+            }
+
             # retrieve data about columns from table
             data = self._get_data()
+            for column in data:
+                column_data = column.data
+                is_column_present = False
+                for field_name, field in self._model.fields.items():
+                    if column_data['Field'] == field_name and column_data['Type'] == field.sql_data_type:
+                        is_column_present = True
+                if not is_column_present:
+                    changes['odd'].append({
+                        'Field': column_data['Field'],
+                        'Type': column_data['Type'],
+                    })
 
-            self.relevant_columns = dict()
-            self.irrelevant_columns = dict()
-            # TODO make a column checker that actually works
             for field_name, field in self._model.fields.items():
-                flag = False
+                is_field_present = False
                 for column in data:
                     column_data = column.data
                     if column_data['Field'] == field_name and column_data['Type'] == field.sql_data_type:
-                        flag = True
-                if flag:
-                    self.relevant_columns[field_name] = field
-                else:
-                    self.irrelevant_columns[field_name] = field
+                        is_field_present = True
+                if not is_field_present:
+                    changes['missing'].append({
+                        'Field': field_name,
+                        'Type': field.sql_data_type,
+                    })
+
+            return changes
+
+        def get_ordered_fields(self) -> list[dict[str: str]]:
+            ordered_fields = []
+
+            previous = 'id'
+            for field_name, field in self._model.fields.items():
+                ordered_fields.append({
+                    'Field': field_name,
+                    'Type': field.sql_data_type,
+                    'Previous': previous,
+                })
+                previous = field_name
+
+            return ordered_fields
 
         def check_if_table_is_relevant(self) -> bool:
-            self.get_relevant_and_irrelevant_columns()
-            if len(self.irrelevant_columns) == 0 and len(self.relevant_columns) == len(self._model.fields.keys()):
+            changes = self.get_changes()
+            if changes == {
+                'odd': list(),
+                'missing': list()
+            }:
                 return True
-            return False
+            else:
+                return False
+
+        def stage_changes(self):
+            changes = self.get_changes()
+
+            list_of_changes = list()
+            for odd_field in changes['odd']:
+                # stage deletion
+                list_of_changes.append(MigrationProcessor.stage_remove_column(self._model, odd_field))
+            for missing_field in changes['missing']:
+                # stage creation
+                list_of_changes.append(MigrationProcessor.stage_add_column(self._model, missing_field))
+            ordered_fields = self.get_ordered_fields()
+            for field in ordered_fields:
+                # stage column swap
+                list_of_changes.append(MigrationProcessor.stage_swap_column(self._model, field))
+
+            self._staged_changes = list_of_changes
+
+        @property
+        def staged_changes(self):
+            return self._staged_changes
 
     objects: _Objects
-    _checker: _Checker
+    checker: _Checker
 
     def __init__(self):
         self.objects = self._Objects(self)
-        self._checker = self._Checker(self)
+        self.checker = self._Checker(self)
 
-    # TODO move this method to a mirgator as it shouldn't be here
     def is_relevant(self):
-        return self._checker.check_if_table_is_relevant()
+        return self.checker.check_if_table_is_relevant()
 
     def add_data(self, data: list[DataObject], commit: bool = False):
         self.objects.insert_data(data=data, commit=commit)
-
-

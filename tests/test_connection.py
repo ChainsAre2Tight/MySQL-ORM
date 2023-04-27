@@ -8,26 +8,26 @@ class ConnectionTest(unittest.TestCase):
     def test_connection(self):
         connection = TemplateConnection('localhost', 'root', 'root')
         self.assertEqual(
-            connection.information,
             {
                 'host': 'localhost',
                 'user': 'root',
                 'password': 'root',
                 'is_connected': False
-            }
+            },
+            connection.information,
         )
 
     def test_database_connection(self):
         connection = DBConnection('localhost', 'root', 'root', 'test')
         self.assertEqual(
-            connection.information,
             {
                 'host': 'localhost',
                 'user': 'root',
                 'password': 'root',
                 'is_connected': True,
                 'dbname': 'test'
-            }
+            },
+            connection.information,
         )
 
 
