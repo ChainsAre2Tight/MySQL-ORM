@@ -86,6 +86,7 @@ class Model(AbstractModel):
         self.objects = self._Objects(self)
         self._checker = self._Checker(self)
 
+    # TODO move this method to a mirgator as it shouldn't be here
     def is_relevant(self):
         return self._checker.check_if_table_is_relevant()
 
