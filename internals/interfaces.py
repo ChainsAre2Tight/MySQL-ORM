@@ -79,3 +79,17 @@ class _AbstractProcessor(ABC):
         return self._data
 
 
+class _AbstractMigrator(ABC):
+    migrations: list
+
+    @abstractmethod
+    def make_migrations(self, list_of_models: list[_AbstractModel]):
+        """
+        Stages migrations for all given models
+        :param list_of_models:
+        """
+        pass
+
+    @abstractmethod
+    def migrate(self):
+        pass
