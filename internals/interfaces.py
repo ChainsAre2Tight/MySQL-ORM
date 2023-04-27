@@ -94,16 +94,3 @@ class _AbstractMigrator(ABC):
     def migrate(self):
         pass
 
-
-class _AbstractMigratorProcessor(ABC):
-    @abstractmethod
-    def stage_add_field(self, field: dict[str: str]):
-        pass
-
-    @abstractmethod
-    def stage_remove_field(self, field: dict[str: str]):
-        pass
-
-    @abstractmethod
-    def stage_swap_field(self, field: dict[str: str]):
-        pass

@@ -1,10 +1,9 @@
 import internals.database_fields as database_fields
-from internals.processor import GetDataProcessor, GetTableInfoProcessor, InsertDataProcessor
+from internals.processor import GetDataProcessor, GetTableInfoProcessor, InsertDataProcessor, MigrationProcessor
 from internals.connector import DBConnection
 from config import Config
-from internals.interfaces import _AbstractModel, _AbstractMigratorProcessor
+from internals.interfaces import _AbstractModel
 from internals.dataobject import DataObject
-from internals.migrator import stage_add_column, stage_remove_column, stage_swap_column
 
 
 class Model(_AbstractModel):
@@ -118,14 +117,14 @@ class Model(_AbstractModel):
             list_of_changes = list()
             for odd_field in changes['odd']:
                 # stage deletion
-                list_of_changes.append(stage_remove_column(self._model, odd_field))
+                list_of_changes.append(MigrationProcessor.stage_remove_column(self._model, odd_field))
             for missing_field in changes['missing']:
                 # stage creation
-                list_of_changes.append(stage_add_column(self._model, missing_field))
+                list_of_changes.append(MigrationProcessor.stage_add_column(self._model, missing_field))
             ordered_fields = self.get_ordered_fields()
             for field in ordered_fields:
                 # stage column swap
-                list_of_changes.append(stage_swap_column(self._model, field))
+                list_of_changes.append(MigrationProcessor.stage_swap_column(self._model, field))
 
             self._staged_changes = list_of_changes
 

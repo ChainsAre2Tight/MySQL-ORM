@@ -1,6 +1,7 @@
 from internals.connector import DBConnection
 from internals.interfaces import _AbstractProcessor
 from internals.dataobject import DataObject
+from config import Config
 
 
 class _GetProcessor(_AbstractProcessor):
@@ -156,3 +157,35 @@ class SwapColumnsProcessor(_AlterTableProcessor):
         sql = f"""ALTER TABLE {self.model.table_name}
 MODIFY COLUMN {field['Field']} {field['Type']} AFTER {field['Previous']};"""
         self._sql = sql
+
+
+class MigrationProcessor:
+    @staticmethod
+    def stage_add_column(model, field):
+        def perform_add_column(debug=False):
+            connection = DBConnection(**Config.connection_data)
+            processor = AddColumnProcessor(model, connection)
+            processor.generate_sql(field)
+            processor.perform(debug=debug)
+
+        return perform_add_column
+
+    @staticmethod
+    def stage_remove_column(model, field):
+        def perform_delete_column(debug=False):
+            connection = DBConnection(**Config.connection_data)
+            processor = RemoveColumnProcessor(model, connection)
+            processor.generate_sql(field)
+            processor.perform(debug=debug)
+
+        return perform_delete_column
+
+    @staticmethod
+    def stage_swap_column(model, field):
+        def perform_swap_columns(debug=False):
+            connection = DBConnection(**Config.connection_data)
+            processor = SwapColumnsProcessor(model, connection)
+            processor.generate_sql(field)
+            processor.perform(debug=debug)
+
+        return perform_swap_columns
