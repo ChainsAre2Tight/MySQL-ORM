@@ -1,4 +1,4 @@
-from model import TestModel
+from models import TestModel
 from internals.dataobject import DataObject
 
 if __name__ == '__main__':

@@ -94,17 +94,3 @@ class Model(AbstractModel):
         self.objects.insert_data(data=data, commit=commit)
 
 
-class MyModel(Model):
-    table_name = 'test'
-    fields = {
-        'field1': database_fields.TextField(),
-        'field2': database_fields.IntegerField(),
-        'aga': database_fields.TextField(),
-    }
-
-
-class TestModel(Model):
-    table_name = 'test'
-    fields = {
-        'aga': database_fields.TextField(),
-    }
