@@ -45,7 +45,8 @@ class TestGetTableInfoProcessor(unittest.TestCase):
         m = MyModel()
         p = GetTableInfoProcessor(con=c, m=m)
         p.get_data()
-        self.assertEqual(p.json_data, [
+        # TODO this test must fail unless all field attributes are supported
+        self.assertEqual([
             {'Default': None,
              'Extra': 'auto_increment',
              'Field': 'id',
@@ -58,7 +59,9 @@ class TestGetTableInfoProcessor(unittest.TestCase):
              'Key': '',
              'Null': 'YES',
              'Type': 'text'}
-        ])
+        ],
+            p.json_data
+        )
 
 
 class TestMyModel(unittest.TestCase):

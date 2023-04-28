@@ -5,12 +5,7 @@ from config import Config
 
 
 class _GetProcessor(_AbstractProcessor):
-    @property
-    def json_data(self):
-        json_list = list()
-        for obj in self._data:
-            json_list.append(obj.data)
-        return json_list
+    pass
 
 
 class GetDataProcessor(_GetProcessor):
@@ -51,6 +46,13 @@ class GetDataProcessor(_GetProcessor):
             list_of_objects.append(DataObject.from_dict(row))
         self._data = list_of_objects
 
+    @property
+    def json_data(self) -> list[dict]:
+        json_list = list()
+        for obj in self._data:
+            json_list.append(obj.data)
+        return json_list
+
 
 class GetTableInfoProcessor(_GetProcessor):
     _data = list[FieldData]
@@ -73,6 +75,13 @@ class GetTableInfoProcessor(_GetProcessor):
         for row in data:
             list_of_objects.append(FieldData.from_dict(row))
         self._data = list_of_objects
+
+    @property
+    def json_data(self) -> list[dict]:
+        json_list = list()
+        for obj in self._data:
+            json_list.append(obj.information)
+        return json_list
 
 
 class InsertDataProcessor(_AbstractProcessor):
