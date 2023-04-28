@@ -3,7 +3,7 @@ from internals.processor import GetDataProcessor, GetTableInfoProcessor, InsertD
 from internals.connector import DBConnection
 from config import Config
 from internals.interfaces import _AbstractModel
-from internals.dataobject import DataObject
+from internals.dataobject import DataObject, FieldData
 
 
 class Model(_AbstractModel):
@@ -43,7 +43,7 @@ class Model(_AbstractModel):
             self._model = m
             self._fields = self._model.fields
 
-        def _get_data(self):
+        def _get_data(self) -> list[FieldData]:
             # create a processor that connects to a database
             connection = DBConnection(**Config.connection_data)
             processor = GetTableInfoProcessor(self._model, connection)
@@ -60,44 +60,37 @@ class Model(_AbstractModel):
             }
 
             # retrieve data about columns from table
-            data = self._get_data()
-            for column in data:
-                column_data = column.data
+            columns = self._get_data()
+            fields = self._model.get_list_of_fields()
+            for column in columns:
                 is_column_present = False
-                for field_name, field in self._model.fields.items():
-                    if column_data['Field'] == field_name and column_data['Type'] == field.sql_data_type:
+                for field in fields:
+                    if field == column:
                         is_column_present = True
                 if not is_column_present:
-                    changes['odd'].append({
-                        'Field': column_data['Field'],
-                        'Type': column_data['Type'],
-                    })
+                    changes['odd'].append(column)
 
-            for field_name, field in self._model.fields.items():
+            for field in fields:
                 is_field_present = False
-                for column in data:
-                    column_data = column.data
-                    if column_data['Field'] == field_name and column_data['Type'] == field.sql_data_type:
+                for column in columns:
+                    if column == field:
                         is_field_present = True
                 if not is_field_present:
-                    changes['missing'].append({
-                        'Field': field_name,
-                        'Type': field.sql_data_type,
-                    })
+                    changes['missing'].append(field)
 
             return changes
 
-        def get_ordered_fields(self) -> list[dict[str: str]]:
+        def get_ordered_fields(self) -> list:
             ordered_fields = []
+            list_of_fields = self._model.get_list_of_fields()
 
             previous = 'id'
-            for field_name, field in self._model.fields.items():
+            for field in list_of_fields:
                 ordered_fields.append({
-                    'Field': field_name,
-                    'Type': field.sql_data_type,
+                    'Field': field,
                     'Previous': previous,
                 })
-                previous = field_name
+                previous = field.field
 
             return ordered_fields
 
@@ -122,9 +115,11 @@ class Model(_AbstractModel):
                 # stage creation
                 list_of_changes.append(MigrationProcessor.stage_add_column(self._model, missing_field))
             ordered_fields = self.get_ordered_fields()
-            for field in ordered_fields:
+            for ordered_field in ordered_fields:
+                field = ordered_field['Field']
+                previous = ordered_field['Previous']
                 # stage column swap
-                list_of_changes.append(MigrationProcessor.stage_swap_column(self._model, field))
+                list_of_changes.append(MigrationProcessor.stage_swap_column(self._model, field, previous))
 
             self._staged_changes = list_of_changes
 
@@ -144,3 +139,13 @@ class Model(_AbstractModel):
 
     def add_data(self, data: list[DataObject], commit: bool = False):
         self.objects.insert_data(data=data, commit=commit)
+
+    def get_list_of_fields(self) -> list[FieldData]:
+        fields_list: list[FieldData]
+        fields_list = []
+        for field_name, field in self.fields.items():
+            fields_list.append(FieldData(
+                field_name,
+                field.sql_data_type,
+            ))
+        return fields_list
