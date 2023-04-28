@@ -148,21 +148,35 @@ class _AlterTableProcessor(_AbstractProcessor):
 
 class AddColumnProcessor(_AlterTableProcessor):
     # TODO make support for default values
-    def generate_sql(self, field):
-        sql = f"ALTER TABLE {self.model.table_name} ADD {field.field} {field.datatype};"
+    def generate_sql(self, field: FieldData):
+        sql = f"ALTER TABLE {self.model.table_name} ADD {field.representation};"
         self._sql = sql
 
 
 class RemoveColumnProcessor(_AlterTableProcessor):
-    def generate_sql(self, field):
+    def generate_sql(self, field: FieldData):
         sql = f"ALTER TABLE {self.model.table_name} DROP COLUMN {field.field};"
         self._sql = sql
 
 
 class SwapColumnsProcessor(_AlterTableProcessor):
-    def generate_sql(self, field, previous: str):
+    def generate_sql(self, field: FieldData, previous: str):
         sql = f"""ALTER TABLE {self.model.table_name}
-MODIFY COLUMN {field.field} {field.datatype} AFTER {previous};"""
+MODIFY COLUMN {field.representation} AFTER {previous};"""
+        self._sql = sql
+
+
+class AlterDefaultValueProcessor(_AlterTableProcessor):
+    def generate_sql(self, field: FieldData):
+        sql = f"""ALTER TABLE {self.model.table_name} ALTER COLUMN {field.field} {
+        'SET DEFAULT ' + field.default if field.default is not None else 'DROP DEFAULT'}"""
+        self._sql = sql
+
+
+class AlterNullableProcessor(_AlterTableProcessor):
+    def generate_sql(self, field: FieldData):
+        sql = f"""ALTER TABLE {self.model.table_name} ALTER COLUMN {field.representation} {
+        'NULL' if field.null else 'NOT NULL'}"""
         self._sql = sql
 
 
@@ -196,3 +210,23 @@ class MigrationProcessor:
             processor.perform(debug=debug)
 
         return perform_swap_columns
+
+    @staticmethod
+    def stage_alter_default_value(model, field):
+        def perform_alter_default_value(debug=False):
+            connection = DBConnection(**Config.connection_data)
+            processor = AlterDefaultValueProcessor(model, connection)
+            processor.generate_sql(field)
+            processor.perform(debug=debug)
+
+        return perform_alter_default_value
+
+    @staticmethod
+    def stage_alter_nullable(model, field):
+        def perform_alter_nullable(debug=False):
+            connection = DBConnection(**Config.connection_data)
+            processor = AlterNullableProcessor(model, connection)
+            processor.generate_sql(field)
+            processor.perform(debug=debug)
+
+        return perform_alter_nullable

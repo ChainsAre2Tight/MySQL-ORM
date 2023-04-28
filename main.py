@@ -16,7 +16,7 @@ from internals.migrator import Migrator
 #     my_model.add_data([d1, d2], commit=False)
 
 if __name__ == '__main__':
-    model = TestModel()
+    model = MyModel()
 
     migrator = Migrator()
     migrator.make_migrations([model])

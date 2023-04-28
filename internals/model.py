@@ -53,31 +53,76 @@ class Model(_AbstractModel):
             data.pop(0)  # remove reference to 'id' field
             return data
 
-        def get_changes(self) -> dict[str: list[dict]]:
-            changes = {
-                'odd': list(),
-                'missing': list(),
-            }
+        class Changes:
+            odd: list[FieldData]
+            missing: list[FieldData]
+            alter_null: list[FieldData]
+            alter_default: list[FieldData]
 
-            # retrieve data about columns from table
+            def __init__(
+                    self,
+                    odd: list[FieldData],
+                    missing: list[FieldData],
+                    alter_null: list[FieldData],
+                    alter_default: list[FieldData],
+            ):
+                self.odd = odd
+                self.missing = missing
+                self.alter_null = alter_null
+                self.alter_default = alter_default
+
+            @property
+            def data(self):
+                return {
+                    'odd': self.odd,
+                    'missing': self.missing,
+                    'alter_null': self.alter_null,
+                    'alter_default': self.alter_default,
+                }
+
+        def get_changes(self) -> Changes:
+
+            # TODO move this to separate methods that return lists of changes so that
+
+            def get_odd(fld: list[FieldData], col: list[FieldData]) -> list[FieldData]:
+                odd = list()
+                for column in col:
+                    is_column_present = False
+                    for field in fld:
+                        if field == column:
+                            is_column_present = True
+                    if not is_column_present:
+                        odd.append(column)
+                return odd
+
+            def get_missing(fld: list[FieldData], col: list[FieldData]) -> list[FieldData]:
+                missing = list()
+                for field in fld:
+                    is_field_present = False
+                    for column in col:
+                        if column == field:
+                            is_field_present = True
+                    if not is_field_present:
+                        missing.append(field)
+                return missing
+
+            def get_change_nullable(fld: list[FieldData], col: list[FieldData]) -> list[FieldData]:
+                # TODO implement this function
+                return list()
+
+            def get_change_default(fld: list[FieldData], col: list[FieldData]) -> list[FieldData]:
+                # TODO implement this function
+                return list()
+
             columns = self._get_data()
             fields = self._model.get_list_of_fields()
-            for column in columns:
-                is_column_present = False
-                for field in fields:
-                    if field == column:
-                        is_column_present = True
-                if not is_column_present:
-                    changes['odd'].append(column)
 
-            for field in fields:
-                is_field_present = False
-                for column in columns:
-                    if column == field:
-                        is_field_present = True
-                if not is_field_present:
-                    changes['missing'].append(field)
-
+            changes = self.Changes(
+                get_odd(fields, columns),
+                get_missing(fields, columns),
+                get_change_nullable(fields, columns),
+                get_change_default(fields, columns)
+            )
             return changes
 
         def get_ordered_fields(self) -> list:
@@ -96,9 +141,11 @@ class Model(_AbstractModel):
 
         def check_if_table_is_relevant(self) -> bool:
             changes = self.get_changes()
-            if changes == {
+            if changes.data == {
                 'odd': list(),
-                'missing': list()
+                'missing': list(),
+                'alter_null': list(),
+                'alter_default': list(),
             }:
                 return True
             else:
@@ -108,12 +155,18 @@ class Model(_AbstractModel):
             changes = self.get_changes()
 
             list_of_changes = list()
-            for odd_field in changes['odd']:
+            for odd_field in changes.odd:
                 # stage deletion
                 list_of_changes.append(MigrationProcessor.stage_remove_column(self._model, odd_field))
-            for missing_field in changes['missing']:
+            for missing_field in changes.missing:
                 # stage creation
                 list_of_changes.append(MigrationProcessor.stage_add_column(self._model, missing_field))
+            for alter_null_field in changes.alter_null:
+                # stage altering nullable
+                list_of_changes.append(MigrationProcessor.stage_alter_nullable(self._model, alter_null_field))
+            for alter_default_field in changes.alter_default:
+                # stage alter default value
+                list_of_changes.append(MigrationProcessor.stage_alter_default_value(self._model, alter_default_field))
             ordered_fields = self.get_ordered_fields()
             for ordered_field in ordered_fields:
                 field = ordered_field['Field']
@@ -145,7 +198,9 @@ class Model(_AbstractModel):
         fields_list = []
         for field_name, field in self.fields.items():
             fields_list.append(FieldData(
-                field_name,
-                field.sql_data_type,
+                name=field_name,
+                datatype=field.sql_data_type,
+                null=field.null,
+                default=field.default,
             ))
         return fields_list

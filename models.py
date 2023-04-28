@@ -5,7 +5,7 @@ from internals.database_fields import *
 class MyModel(Model):
     table_name = 'test'
     fields = {
-        'field1': TextField(),
+        'field1': TextField(null=False),
         'field2': IntegerField(),
     }
 
@@ -13,5 +13,5 @@ class MyModel(Model):
 class TestModel(Model):
     table_name = 'test'
     fields = {
-        'aga': TextField(),
+        'aga': TextField(null=False),
     }
