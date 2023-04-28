@@ -6,7 +6,6 @@ class Field(ABC):
     _can_be_null: bool
     _default: None
 
-    # TODO make support for nullifiables
     def __init__(
             self,
             null: bool = True,

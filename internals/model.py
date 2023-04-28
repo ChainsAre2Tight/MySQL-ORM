@@ -82,8 +82,6 @@ class Model(_AbstractModel):
 
         def get_changes(self) -> Changes:
 
-            # TODO move this to separate methods that return lists of changes so that
-
             def get_odd(fld: list[FieldData], col: list[FieldData]) -> list[FieldData]:
                 odd = list()
                 for column in col:

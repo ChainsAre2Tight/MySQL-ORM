@@ -147,7 +147,6 @@ class _AlterTableProcessor(_AbstractProcessor):
 
 
 class AddColumnProcessor(_AlterTableProcessor):
-    # TODO make support for default values
     def generate_sql(self, field: FieldData):
         sql = f"ALTER TABLE {self.model.table_name} ADD {field.representation};"
         self._sql = sql
