@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from internals.dataobject import DataObject
+from internals.dataobject import DataObject, FieldData
 
 
 class _AbstractConnection(ABC):
@@ -76,7 +76,7 @@ class _AbstractModel(ABC):
         _staged_changes = list()
 
         @abstractmethod
-        def _get_data(self) -> list:
+        def _get_data(self) -> list[FieldData]:
             pass
 
         @abstractmethod
@@ -108,6 +108,14 @@ class _AbstractModel(ABC):
 
     @abstractmethod
     def add_data(self, data: list[DataObject], commit: bool = False):
+        pass
+
+    @abstractmethod
+    def get_list_of_fields(self) -> list[FieldData]:
+        """
+        Converts Field objects into FieldData objects for further evaluation
+        :return: list of FieldData objects
+        """
         pass
 
 

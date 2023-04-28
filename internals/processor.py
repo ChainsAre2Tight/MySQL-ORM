@@ -1,6 +1,6 @@
 from internals.connector import DBConnection
 from internals.interfaces import _AbstractProcessor
-from internals.dataobject import DataObject
+from internals.dataobject import DataObject, FieldData
 from config import Config
 
 
@@ -53,7 +53,7 @@ class GetDataProcessor(_GetProcessor):
 
 
 class GetTableInfoProcessor(_GetProcessor):
-    _data = list
+    _data = list[FieldData]
 
     def get_data(self):
         # generate SQL query
@@ -71,7 +71,7 @@ class GetTableInfoProcessor(_GetProcessor):
 
         list_of_objects = list()
         for row in data:
-            list_of_objects.append(DataObject.from_dict(row))
+            list_of_objects.append(FieldData.from_dict(row))
         self._data = list_of_objects
 
 
@@ -120,7 +120,7 @@ class InsertDataProcessor(_AbstractProcessor):
 class _AlterTableProcessor(_AbstractProcessor):
     _sql: str
 
-    def generate_sql(self, field):
+    def generate_sql(self, field: FieldData):
         sql = ''
         self._sql = sql
 
@@ -140,20 +140,20 @@ class _AlterTableProcessor(_AbstractProcessor):
 class AddColumnProcessor(_AlterTableProcessor):
     # TODO make support for default values
     def generate_sql(self, field):
-        sql = f"ALTER TABLE {self.model.table_name} ADD {field['Field']} {field['Type']};"
+        sql = f"ALTER TABLE {self.model.table_name} ADD {field.field} {field.datatype};"
         self._sql = sql
 
 
 class RemoveColumnProcessor(_AlterTableProcessor):
     def generate_sql(self, field):
-        sql = f"ALTER TABLE {self.model.table_name} DROP COLUMN {field['Field']};"
+        sql = f"ALTER TABLE {self.model.table_name} DROP COLUMN {field.field};"
         self._sql = sql
 
 
 class SwapColumnsProcessor(_AlterTableProcessor):
-    def generate_sql(self, field):
+    def generate_sql(self, field, previous: str):
         sql = f"""ALTER TABLE {self.model.table_name}
-MODIFY COLUMN {field['Field']} {field['Type']} AFTER {field['Previous']};"""
+MODIFY COLUMN {field.field} {field.datatype} AFTER {previous};"""
         self._sql = sql
 
 
@@ -179,11 +179,11 @@ class MigrationProcessor:
         return perform_delete_column
 
     @staticmethod
-    def stage_swap_column(model, field):
+    def stage_swap_column(model, field, prev):
         def perform_swap_columns(debug=False):
             connection = DBConnection(**Config.connection_data)
             processor = SwapColumnsProcessor(model, connection)
-            processor.generate_sql(field)
+            processor.generate_sql(field, previous=prev)
             processor.perform(debug=debug)
 
         return perform_swap_columns
